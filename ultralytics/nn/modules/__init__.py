@@ -103,6 +103,8 @@ from .transformer import (
     TransformerLayer,
 )
 
+from .mobilenet import MobileNetV4ConvSmall
+
 __all__ = (
     "Conv",
     "Conv2",
@@ -181,4 +183,5 @@ __all__ = (
     "Index",
     "A2C2f",
     "GAM_Attention",
+    "MobileNetV4ConvSmall",
 )
