@@ -1741,11 +1741,24 @@ def parse_model(d, ch, verbose=True):
             c2 = ch[f]
 
         if m in {MobileNetV4ConvSmall,}:
-            m_ = m(args[0], args[1], args[2])
+            # args format: [c1, c2, i] where i is the layer index
+            if len(args) != 3:
+                raise ValueError(f"MobileNetV4ConvSmall requires 3 arguments [c1, c2, i], got {len(args)}")
+            c1, c2, i = args
+            if not isinstance(i, int) or i < 0 or i > 5:
+                raise ValueError(f"MobileNetV4ConvSmall layer index must be between 0 and 5, got {i}")
+            if not isinstance(c1, (int, float)) or not isinstance(c2, (int, float)):
+                raise TypeError(f"Channel numbers must be numbers, got c1={type(c1)}, c2={type(c2)}")
+            c1 = int(c1)
+            c2 = int(c2)
+            if c1 <= 0 or c2 <= 0:
+                raise ValueError(f"Channel numbers must be positive, got c1={c1}, c2={c2}")
+            print(f"Debug: MobileNetV4ConvSmall args - c1={c1}, c2={c2}, i={i}")  # Debug print
+            m_ = m(c1, c2, i)  # c1, c2, i
             t = "ultralytics.nn.modules.mobilenetv4"
         else:
             m_ = nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
-            t  = str(m)[8:-2].replace("__main__.", "")  # module type
+            t = str(m)[8:-2].replace("__main__.", "")  # module type
         #module
 
         m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module

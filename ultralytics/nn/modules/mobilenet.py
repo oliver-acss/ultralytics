@@ -388,7 +388,26 @@ class MobileNetV4(nn.Module):
         return x
 
 
-def MobileNetV4ConvSmall(i, c1, c2):
+def MobileNetV4ConvSmall(c1, c2, i):
+    """
+    Create a MobileNetV4ConvSmall layer.
+    
+    Args:
+        c1 (int): Number of input channels
+        c2 (int): Number of output channels
+        i (int): Layer index (0-5)
+    """
+    if not isinstance(i, int):
+        raise TypeError(f"Layer index must be an integer, got {type(i)}")
+    if i < 0 or i > 5:
+        raise ValueError(f"MobileNetV4ConvSmall layer index must be between 0 and 5, got {i}")
+    if not isinstance(c1, (int, float)) or not isinstance(c2, (int, float)):
+        raise TypeError(f"Channel numbers must be numbers, got c1={type(c1)}, c2={type(c2)}")
+    c1 = int(c1)
+    c2 = int(c2)
+    if c1 <= 0 or c2 <= 0:
+        raise ValueError(f"Channel numbers must be positive, got c1={c1}, c2={c2}")
+        
     model = MobileNetV4('MobileNetV4ConvSmall', i)
     return model.layers[i]
 
