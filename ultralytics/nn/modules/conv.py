@@ -615,6 +615,58 @@ class SpatialAttention(nn.Module):
         return x * self.act(self.cv1(torch.cat([torch.mean(x, 1, keepdim=True), torch.max(x, 1, keepdim=True)[0]], 1)))
 
 
+class SE(nn.Module):
+    """
+    Squeeze-and-Excitation attention module for channel-wise feature recalibration.
+
+    This module implements the SE attention mechanism that adaptively recalibrates channel-wise feature responses
+    by explicitly modeling interdependencies between channels.
+
+    Attributes:
+        avg_pool (nn.AdaptiveAvgPool2d): Global average pooling layer.
+        fc (nn.Sequential): Fully connected layers with reduction ratio.
+        sigmoid (nn.Sigmoid): Sigmoid activation for attention weights.
+
+    References:
+        https://arxiv.org/abs/1709.01507
+    """
+
+    def __init__(self, c1, reduction=16):
+        """
+        Initialize SE attention module.
+
+        Args:
+            c1 (int): Number of input channels.
+            reduction (int): Reduction ratio for the bottleneck layer.
+        """
+        super().__init__()
+        # Ensure reduction doesn't make intermediate channels zero
+        reduction = min(reduction, c1 // 2) if c1 > 1 else 1
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+            nn.Conv2d(c1, c1 // reduction, 1, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(c1 // reduction, c1, 1, bias=False)
+        )
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        """
+        Apply SE attention to input tensor.
+
+        Args:
+            x (torch.Tensor): Input tensor with shape (B, C, H, W).
+
+        Returns:
+            (torch.Tensor): SE-attended output tensor with same shape as input.
+        """
+        b, c, _, _ = x.size()
+        y = self.avg_pool(x)  # (B, C, 1, 1)
+        y = self.fc(y)  # (B, C, 1, 1)
+        y = self.sigmoid(y)
+        return x * y.expand_as(x)
+
+
 class CBAM(nn.Module):
     """
     Convolutional Block Attention Module.

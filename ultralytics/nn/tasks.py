@@ -37,6 +37,7 @@ from ultralytics.nn.modules import (
     C3k2,
     C3x,
     CBFuse,
+    CBAM,
     CBLinear,
     Classify,
     Concat,
@@ -62,6 +63,7 @@ from ultralytics.nn.modules import (
     ResNetLayer,
     RTDETRDecoder,
     SCDown,
+    SE,
     Segment,
     TorchVision,
     WorldDetect,
@@ -1737,6 +1739,19 @@ def parse_model(d, ch, verbose=True):
         elif m in frozenset({TorchVision, }):
             c2 = args[1]
             c1 = args[2]
+        elif m in {SE, CBAM}:  # Special handling for attention modules
+            c2 = ch[f]  # Output channels same as input channels
+            if m is SE:
+                # SE expects (channels, reduction), we have (reduction)
+                # Add input channels as first parameter
+                args = [ch[f]] + args  # channels, reduction
+            elif m is CBAM:
+                # CBAM expects (channels, kernel_size), we have (channels)
+                # Add default kernel_size=7 if not provided
+                if len(args) == 1:
+                    args = [ch[f], 7]  # channels, default kernel_size
+                else:
+                    args = [ch[f]] + args  # channels, kernel_size
         else:
             c2 = ch[f]
 
