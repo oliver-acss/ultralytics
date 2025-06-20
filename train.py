@@ -5,7 +5,7 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 if __name__ == '__main__':
     # 使用自定义的yolov8-package模型配置
-    model = YOLO('ultralytics/cfg/models/v8/yolov8-package2.yaml')
+    model = YOLO('ultralytics/cfg/models/v8/yolov8-package3.yaml')
 
     # 训练参数设置
     results = model.train(
